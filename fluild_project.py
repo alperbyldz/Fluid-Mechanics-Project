@@ -1,4 +1,5 @@
 import math
+#tested pipe pipe types
 pipe_types = {
     'Riveted steel': 9.0,
     'Concrete': 3.0,
@@ -9,6 +10,7 @@ pipe_types = {
     'Drawn tubing': 0.0015,
     'Plastic - Glass': 0,
 }
+#tested pipe diameters
 pipe_diameters = [0.015, 0.020, 0.025, 0.040, 0.050, 0.080, 0.100, 0.125,0.150,0.200,0.250,0.300,] # in meter
 electric_cost = 0.04 # dolar/KW
 flow_rate = 0.0139 # m^3/s
@@ -19,7 +21,7 @@ viscosity = 2.9825*10**-4 # Ns/m^2
 density = 961.85 #Kg/m^3
 gravitational_acceleration = 9.81 # m/s^2
 elevation_difference_h2 = 20 # meter
-total_year=20
+total_year=5
 total_hour = total_year*365*24
 P_vapor = 84926.4 #Pa
 P_0 = 200000#Pa
@@ -54,18 +56,18 @@ def pump_power_calculator(the_diameter,coefficent):
     mass_flowrate = density*velocity*area
     work_flow_pump = (gravitational_acceleration*elevation_difference_h2 + Total_lost)/ pump_efficiency
     pump_power = work_flow_pump*mass_flowrate/1000 # 1/1000 for W TO KW
-    pump_power = pump_power/pump_efficiency #danış
+    pump_power = pump_power/pump_efficiency #total power need with respect to efficiency
     if 1<pump_power<2500:
         totol_pump_number = pump_power/Pump_Kw
         pump_seperation_meter = Lenght/totol_pump_number
         return pump_power, totol_pump_number ,pump_seperation_meter
     else:
-        return None, None, None
+        return None, None, None  # to prevent errors caused by code
 def cost_calculator(the_pipe_coefficient , the_diameter):
     pump_power, totol_pump_number ,pump_seperation_meter = pump_power_calculator(the_diameter,the_pipe_coefficient)
-    if pump_power is None:
+    if pump_power is None: # to prevent errors caused by code
         return -1, None, None, None
-    number_str = f"{totol_pump_number:.99f}"
+    number_str = f"{totol_pump_number:.99f}" # if number of pumps come with deciamal part, we raund off the number to 1 above 
     if '.' in number_str:
         integer_part, decimal_part = number_str.split('.')
         decimal_part_float = float("0."+decimal_part)
@@ -74,21 +76,21 @@ def cost_calculator(the_pipe_coefficient , the_diameter):
     C_electricity = electric_cost*pump_power*total_hour
     C_pump = 920 + 600*(pump_power**0.70)
     C_pipe = 800 * (the_diameter**0.74) * Lenght
-    cost = C_pump+C_pipe+C_electricity
+    cost = C_pump+C_pipe+C_electricity  #total cost 
     return cost,pump_power,totol_pump_number, pump_seperation_meter
 lowest_cost_list = []
 for the_pipe,the_pipe_coefficient in pipe_types.items() :
     for the_diameter in pipe_diameters:
         (cost,power,number_of_pumps,seperation_distance) = cost_calculator(the_pipe_coefficient, the_diameter)
         if cost == -1:
-            pass
+            pass # to prevent errors caused by code
         else:
             lowest_cost_list.append((the_pipe, the_diameter, cost, power,number_of_pumps,seperation_distance,the_pipe_coefficient ))
-sorted_data = sorted(lowest_cost_list, key=lambda x: x[2])
+sorted_data = sorted(lowest_cost_list, key=lambda x: x[2]) #The list is sorted by cost from smallest to largest
 i = 1
 for pipe_type,pipe_diameter,last_cost,power_1,number_of_pump,seperation_distance,the_pipe_coefficient in sorted_data:
-    if last_cost < 200000000000:
-        number_str = f"{last_cost:.2f}"
+    if last_cost < 200000000000:   # If desired, the number in this line can be changed to show costs within a certain range
+        number_str = f"{last_cost:.2f}" # The numbers turn out to be big. These lines help make the numbers more readable
         if '.' in number_str:
             integer_part, decimal_part = number_str.split('.')
             integer_part_with_dots = ".".join([integer_part[max(i - 3, 0):i] for i in range(len(integer_part), 0, -3)][::-1])
@@ -97,13 +99,24 @@ for pipe_type,pipe_diameter,last_cost,power_1,number_of_pump,seperation_distance
             decimal_part = '00'
             integer_part_with_dots = ".".join([integer_part[max(i - 3, 0):i] for i in range(len(integer_part), 0, -3)][::-1])
         formatted_number = f"{integer_part_with_dots},{decimal_part}"
-        print("{})Pipe Type: {}, Pipe Diameter: {} meter, Cost: {}, $, Power : {}Kw, Number of pump {}, Pipe Coefficient : {}".format(i,pipe_type,pipe_diameter,formatted_number,power_1,number_of_pump, the_pipe_coefficient))
+        number_str2 = f"{power_1:.2f}" # The numbers turn out to be big. These lines help make the numbers more readable
+        if '.' in number_str:
+            integer_part, decimal_part = number_str2.split('.')
+            integer_part_with_dots = ".".join([integer_part[max(i - 3, 0):i] for i in range(len(integer_part), 0, -3)][::-1])
+        else:
+            integer_part = number_str2
+            decimal_part = '00'
+            integer_part_with_dots = ".".join([integer_part[max(i - 3, 0):i] for i in range(len(integer_part), 0, -3)][::-1])
+        formatted_number2 = f"{integer_part_with_dots},{decimal_part}"
+        print("{})Pipe Type: {}, Pipe Diameter: {} meter, Cost: {}, $, Power : {}Kw, Number of pump {}, Pipe Coefficient : {}"
+            .format(i,pipe_type,pipe_diameter,formatted_number,formatted_number2,number_of_pump, the_pipe_coefficient))
         i = i +1
     else:
         continue
-print("***********************************************************************************************************************************************************************************************************************")
-#Pipe systems values
-#4)Pipe Type: Plastic - Glass, Pipe Diameter: 0.125 meter, Cost: 1.751.954,73, $, Power : 16.875791635587266Kw, Number of pump 11.0, Pump distance : 912.5497832957863 meter , Pipe Coefficient : 0
+print("**********************************************************************************************************************************************")
+#                                         Pipe systems values
+#       Pipe Type: Plastic - Glass, Pipe Diameter: 0.125 meter, Cost: 1.751.954,73, $, 
+#       Power : 16.875791635587266Kw, Number of pump 11.0, Pump distance : 912.5497832957863 meter , Pipe Coefficient : 0
 P_1 = 0
 P_2 = 0
 P_3 = 0
@@ -122,13 +135,19 @@ voted_diameter = 0.125
 voted_pipe_type =  "Plastic - Glass"
 voted_coefficient = 0
 pipe_system_values = [[0.75,0,999,P_0],[1.76,0,1000,P_1],[0.64,0,1000,P_2],[0,0,1000,P_3],
-                      [0.80,0,990,P_4],[0.48,0,750,P_5],[0.48,0,750,P_7],[1,0,750,P_8],[1,0,750,P_9],[0.4,0,1000,P_10],[0.4,0,1000,P_11],[1.19,20,20,P_12],[0.15,0,1,P_13]] # kl values , elevation difference , distance , Pressure
+                      [0.80,0,990,P_4],[0.48,0,750,P_5],[0.48,0,750,P_7],[1,0,750,P_8],[1,0,750,P_9],
+                      [0.4,0,1000,P_10],[0.4,0,1000,P_11],[1.19,20,20,P_12],[0.15,0,1,P_13]]
+                      #The features of the pipe system between the engines are kept in these lists.
+                      #     Kl value, elevation difference, distance respectively. The last value kept is the pressure
+                      #     value at the output of the previous engine. By changing the values ​​here, the code can be used
+                      #     in new pipe systems.
 def HL_i_calculator(the_diameter,Kli,distance,velocity,coefficent):
     f = f_calculator(the_diameter,coefficent,velocity)
     hl_i = (Kli + f*(distance/the_diameter))*((velocity**2)/(2*gravitational_acceleration))
     return hl_i
 def NPSHa_i_calculator(pump_number,velocity,Pi,elevation_difference_i,hl_i):
-    NPSHa = (Pi/(density*gravitational_acceleration)+((velocity**2)/(2*gravitational_acceleration))+elevation_difference_i-hl_i-(P_vapor/(density*gravitational_acceleration)))
+    NPSHa = (Pi/(density*gravitational_acceleration)+((velocity**2)/(2*gravitational_acceleration))+elevation_difference_i-hl_i
+        -(P_vapor/(density*gravitational_acceleration)))
     if NPSHa <= NPSHr:
         print("NPSHa is less than NPSHr, Cavitation will occour at {} pump".format(pump_number))
         print("NPSHa : {} , NPSHr : {} ".format(NPSHa,NPSHr))
@@ -136,12 +155,17 @@ def NPSHa_i_calculator(pump_number,velocity,Pi,elevation_difference_i,hl_i):
         print("NPSHa : {} , NPSHr : {} , Pump : {}".format(NPSHa, NPSHr,pump_number))
     return NPSHa
 def pressure_after_pump(pump_number,Pi,elevation_difference_i,hl_i,the_diameter,coefficent,distance):
+    # Line of code that finds the pressure values ​​after the pumps step by step.
+    # The number of motors can be changed in the pipe_system_values ​​list.
+    # The initial pressure is taken as 2 bar. Finally, the code calculates
+    # the output pressure of the last pump and ends.
     if pump_number == len(pipe_types)-2:
         elevation_difference_i = pipe_system_values[len(pipe_system_values)-1][2]
         velocity = velocity_calculator(the_diameter)
         Kli_exit = pipe_system_values[len(pipe_system_values)-1][0]
         hl_i_exit = HL_i_calculator(the_diameter,Kli_exit,distance,velocity,coefficent)
-        P_i_plus_1 = ( (Pi/gravitational_acceleration) - (elevation_difference_i*gravitational_acceleration) - hl_i_exit + ((Pump_Kw*pump_efficiency)/(density*flow_rate)))*gravitational_acceleration
+        P_i_plus_1 = ( (Pi/gravitational_acceleration) - (elevation_difference_i*gravitational_acceleration) 
+            - hl_i_exit + ((Pump_Kw*pump_efficiency)/(density*flow_rate)))*gravitational_acceleration
         return P_i_plus_1
     else:
         P_i_plus_1 = (Pi/density+elevation_difference_i+((Pump_Kw*pump_efficiency)/(density*flow_rate))-hl_i)*density
@@ -172,7 +196,7 @@ C_electricity = electric_cost*pump_power*total_hour
 C_pump = 920 + 600*(pump_power**0.70)
 C_pipe = 800 * (voted_diameter**0.74) * Lenght
 cost = C_pump+C_pipe+C_electricity
-number_str = f"{cost:.2f}"
+number_str = f"{cost:.2f}" # The numbers turn out to be big. These lines help make the numbers more readable
 if '.' in number_str:
     integer_part, decimal_part = number_str.split('.')
     integer_part_with_dots = ".".join([integer_part[max(i - 3, 0):i] for i in range(len(integer_part), 0, -3)][::-1])
@@ -181,4 +205,4 @@ else:
     decimal_part = '00'
     integer_part_with_dots = ".".join([integer_part[max(i - 3, 0):i] for i in range(len(integer_part), 0, -3)][::-1])
 formatted_number = f"{integer_part_with_dots},{decimal_part}"
-print("Actual cost: {} $".format(formatted_number))
+print("Actual cost: {} $".format(formatted_number)) #The actual cost after the piping system is installed.
